@@ -1,0 +1,34 @@
+{
+    "go.goplsOptions": {
+        "completeUnimported": true
+    },
+	"colors.enable": true,
+	"pyright.disableDiagnostics": false,
+	"coc.source.file.ignoreHidden": false,
+	"pyright.inlayHints.variableTypes": true,
+	"pyright.inlayHints.functionReturnTypes": true,
+	"diagnostic.warningSign": "!",
+	"diagnostic.errorSign": "x",
+	"diagnostic.hintSign": "-",
+	"diagnostic.infoSign": "i",
+	"zig.enabled": true,
+	"zig.startUpMessage": true,
+	"zig.path": "/home/saifr/progs/zls/zig-out/bin/zls",
+	"zig.debugLog": false,
+	"suggest.autoTrigger": "none",
+	"signature.enable": false,
+	"languageserver": {
+		"ccls": {
+			"command": "ccls",
+			"filetypes": ["c", "cc", "cpp", "c++", "objc", "objcpp"],
+			"rootPatterns": [".ccls", "compile_commands.json", ".git/", ".hg/"],
+			"initializationOptions": {
+				"highlight": {"lsRanges": true},
+				"cache": {
+					"directory": "/tmp/ccls"
+				}
+			}
+		}
+  },
+  "svelte.enable-ts-plugin": true
+}

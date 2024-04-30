@@ -1,0 +1,10 @@
+source /home/saifr/.config/nvim/mods/mapleader.vim
+source /home/saifr/.config/nvim/mods/coc.vim
+source /home/saifr/.config/nvim/mods/keymap.vim
+source /home/saifr/.config/nvim/mods/tab.vim
+source /home/saifr/.config/nvim/mods/colors.vim
+source /home/saifr/.config/nvim/mods/telescope.vim
+source /home/saifr/.config/nvim/mods/hop.vim
+source /home/saifr/.config/nvim/mods/dap/dap.vim
+source /home/saifr/.config/nvim/mods/dap/ui.vim
+source /home/saifr/.config/nvim/mods/dap/virtual-text.vim
