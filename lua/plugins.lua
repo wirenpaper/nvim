@@ -12,10 +12,10 @@ return require('packer').startup(function(use)
     }
     require'hop'.setup()
     use 'ARM9/arm-syntax-vim'
+    use 'wolandark/vim-live-server'
     use 'philj56/vim-asm-indent'
     use 'vigoux/oak'
     use 'rockerBOO/boo-colorscheme-nvim'
-    --And then somewhere in your init.vim, to set the colorscheme
     use 'tjdevries/colorbuddy.vim'
     use 'RishabhRD/nvim-rdark'
     use 'marko-cerovac/material.nvim'
@@ -23,14 +23,11 @@ return require('packer').startup(function(use)
     use 'catppuccin/nvim'
     use 'kovisoft/slimv'
     use 'bhurlow/vim-parinfer'
-    --use 'HiPhish/rainbow-delimiters.nvim'
     use 'preservim/nerdtree'
     use 'preservim/nerdcommenter'
     use 'preservim/tagbar'
     use 'ziglang/zig.vim'
     use 'idris-hackers/idris-vim'
-    --use 'gregkh/kernel-coding-style'
-    --use "vivien/vim-linux-coding-style"
     use 'vim-scripts/a.vim'
     use ('nvim-treesitter/nvim-treesitter', {run = ':TSUpdate'})
     use { "rcarriga/nvim-dap-ui", requires = {"mfussenegger/nvim-dap"} }
@@ -38,10 +35,10 @@ return require('packer').startup(function(use)
     use 'mfussenegger/nvim-dap-python'
     use 'leoluz/nvim-dap-go'
     use 'nvim-telescope/telescope-dap.nvim'
-    --use 'airblade/vim-rooter'
     use {'neoclide/coc.nvim', branch = 'release'}
+    use "junegunn/fzf.vim"
+    use "nvim-neotest/neotest-vim-test"
     use "nvim-telescope/telescope.nvim"
-    require('telescope').load_extension('fzf')
     use "nvim-lua/plenary.nvim"
     use "nvim-lua/popup.nvim"
     use "Jorengarenar/vim-darkness"
@@ -58,33 +55,49 @@ return require('packer').startup(function(use)
     use "nvim-lualine/lualine.nvim"
     use "rose-pine/neovim"
     use {'nvim-telescope/telescope-fzf-native.nvim', run = 'make' }
-    use {
+    use "nvim-neotest/nvim-nio"
+    use "antoinemadec/FixCursorHold.nvim"
+    use 'nvim-neotest/neotest-python'
+    use 'folke/neodev.nvim'
+    use "nvim-neotest/neotest-go"
+    use({
         "nvim-neotest/neotest",
         requires = {
-            "nvim-neotest/nvim-nio",
-            "nvim-lua/plenary.nvim",
-            "antoinemadec/FixCursorHold.nvim",
-            "nvim-treesitter/nvim-treesitter"
-        }
-    }
-    use 'nvim-neotest/neotest-python'
-    require("neotest").setup({
-        adapters = {
-            require("neotest-python")
-        }
-    })
-    use 'nvim-neotest/neotest-plenary'
-    use 'nvim-neotest/neotest-vim-test'
-    require("neotest").setup({
-        adapters = {
-            require("neotest-python")({
-                dap = { justMyCode = false },
-            }),
-            require("neotest-plenary"),
-            require("neotest-vim-test")({
-                ignore_file_types = { "python", "vim", "lua" },
-            }),
+            "nvim-neotest/neotest-go",
+            "nvim-neotest/neotest-python",
+            -- Your other test adapters here
         },
+        config = function()
+            -- get neotest namespace (api call creates or returns namespace)
+            local neotest_ns = vim.api.nvim_create_namespace("neotest")
+            vim.diagnostic.config({
+                virtual_text = {
+                    format = function(diagnostic)
+                        local message =
+                        diagnostic.message:gsub("\n", " "):gsub("\t", " "):gsub("%s+", " "):gsub("^%s+", "")
+                        return message
+                    end,
+                },
+            }, neotest_ns)
+            require("neotest").setup({
+                -- your neotest config here
+                adapters = {
+                    require("neotest-go"),
+                    require("neotest-python"),
+                },
+            })
+        end,
     })
-    use 'folke/neodev.nvim'
+    require("neotest").setup({
+        adapters = {
+            require("neotest-python"),
+            require("neotest-go"),
+        }
+    })
+
+    use 'sainnhe/sonokai'
+    use 'ishan9299/modus-theme-vim'
+    use 'DilanGMB/nightbuddy'
+    use 'shaunsingh/solarized.nvim'
+    use 'honza/vim-snippets'
 end)

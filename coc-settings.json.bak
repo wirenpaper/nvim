@@ -3,7 +3,7 @@
         "completeUnimported": true
     },
 	"colors.enable": true,
-	"pyright.disableDiagnostics": true,
+	"pyright.disableDiagnostics": false,
 	"coc.source.file.ignoreHidden": false,
 	"pyright.inlayHints.variableTypes": true,
 	"pyright.inlayHints.functionReturnTypes": true,

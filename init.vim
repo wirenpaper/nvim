@@ -11,19 +11,29 @@ au FileType * set fo-=c fo-=r fo-=o
 "colo birds-of-paradise
 "colo xterm16
 "colo garden
-"colo catppuccin
-"colo pride
 "colo rose-pine-moon
 "colo rose-pine
 "colo adrian
-"colo catppuccin
+
 colo darkness
+"colo quiet
+"colo catppuccin
+"colo white
+"colo catppuccin-mocha
+"colo moonfly
+"colo modus-operandi
+
+"colo shades-of-teal
+"colo modus-operandi
+"colo redstring
+"colo pride
+"colo dante
+"colo darkness
 "colo quiet
 "colo catppuccin-mocha
 "colo oceanblack256
 "colo oak
 "colo greens
-"colo dante
 "colo abyss
 let g:NERDTreeChDirMode=1
 
@@ -41,7 +51,6 @@ set autoindent expandtab tabstop=4 shiftwidth=4
 set smartindent
 
 lua require('dap-go').setup()
-
 lua << EOF
 local function debug_normal()
     require('dap').configurations.go = {
@@ -86,33 +95,15 @@ lua require('dap-python').setup('~/.virtualenvs/debugpy/bin/python')
 
 au BufNewFile,BufRead *.s,*.S set filetype=arm " arm = armv6/7
 
-
-lua << EOF
-local dap = require('dap')
-
-dap.adapters.dart = {
-    type = "executable",
-    command = "dart",
-    -- This command was introduced upstream in https://github.com/dart-lang/sdk/commit/b68ccc9a
-    args = {"debug_adapter"}
-}
-dap.configurations.dart = {
-    {
-            type = "dart",
-            request = "launch",
-            name = "Launch Dart Program",
-            -- The nvim-dap plugin populates this variable with the filename of the current buffer
-            program = "${file}",
-            -- The nvim-dap plugin populates this variable with the editor's current working directory
-            cwd = "${workspaceFolder}",
-            args = {"--help"}, -- Note for Dart apps this is args, for Flutter apps toolArgs
-    }
-}
-EOF
-
 nnoremap <leader>rf :lua require("neotest").run.run(vim.fn.expand("%"))
 nnoremap <leader>rn :lua require("neotest").run.run({strategy = "dap"})
 
 
 
 set guicursor=n:block
+command! -nargs=0 Prettier :CocCommand prettier.forceFormatDocument
+
+autocmd FileType javascript setlocal shiftwidth=2 tabstop=2
+autocmd FileType html setlocal shiftwidth=2 tabstop=2
+autocmd FileType css setlocal shiftwidth=2 tabstop=2
+autocmd FileType typescript setlocal shiftwidth=2 tabstop=2
