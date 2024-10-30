@@ -65,9 +65,9 @@ local function comp(ArgLead, CmdLine, CursorPos)
     return files
 end
 
-function M.hook_files(arg)
+function M.hook_files(arg, flt)
     local hook_files = vim.fn.readdir(hooks.path .. '/.hook_files/', function(name)
-        return name ~= M.MARKER
+        return name ~= M.MARKER and name ~= flt
     end)
 
     pickers.new({}, {
@@ -113,22 +113,23 @@ function M.hook_files(arg)
                     elseif arg == "DELETE" then
                         hookfiles_del(entry.value)
                     elseif arg == "RENAME" then
-                        hookfiles_ren(entry.value)
+                        hookfiles_ren(entry.value, entry.value)
                     elseif arg == "COPY" then
                         hookfiles_cp(entry.value)
                     elseif string.sub(arg, 1, 7) == "RENAME " then
+                        local path = hooks.path .. "/.hook_files/" .. string.sub(arg, 8)
                         if entry and entry.value then
                             vim.ui.input({
                                 prompt = "Workspace exists, Continue? (y/n): "
                             }, function(input)
                                 if input == "y" then
-                                    hookfiles_ren_ex(string.sub(arg, 8), hooks.path .. "/.hook_files/" .. entry.value)
+                                    hookfiles_ren_ex(path, hooks.path .. "/.hook_files/" .. entry.value)
                                 else
                                     print("command cancelled")
                                 end
                             end)
                         else
-                            hookfiles_ren_ex(string.sub(arg, 8), hooks.path .. "/.hook_files/" .. action_state.get_current_line())
+                            hookfiles_ren_ex(path, hooks.path .. "/.hook_files/" .. action_state.get_current_line())
                         end
                     elseif string.sub(arg, 1, 5) == "COPY " then
                         if entry and entry.value then
@@ -152,19 +153,20 @@ vim.api.nvim_create_user_command('Wm', function()
     vim.ui.input({
         prompt = "Current workspace? (y/n): "
     }, function(input)
+        flt = file_content(hooks.path .. "/.hook_files/" .. M.MARKER)
         if input == "n" then
-            M.hook_files("RENAME") 
+            M.hook_files("RENAME", flt) 
         elseif input == "y" then
-            hookfiles_ren(file_content(hooks.path .. "/.hook_files/" .. M.MARKER))
+            hookfiles_ren(file_content(hooks.path .. "/.hook_files/" .. M.MARKER), flt)
         else
             print("incorrect choice")
         end
     end)
 end, {})
 
-function hookfiles_ren(fname)
+function hookfiles_ren(fname, flt)
     local source_path = hooks.path .. '/.hook_files/' .. fname
-    M.hook_files("RENAME " .. source_path)
+    M.hook_files("RENAME " .. source_path:match("([^/]+)$"), flt)
 end
 
 function hookfiles_ren_ex(file, target)
@@ -174,6 +176,7 @@ function hookfiles_ren_ex(file, target)
             bookmark(target:match("([^/]+)$"), hooks.path .. "/.hook_files/" .. M.MARKER)
             set_hookfiles(target:match("([^/]+)$"))
         end
+        print(file:match("([^/]+)$") .. " -> " .. target:match("([^/]+)$"))
     end
 
     if source == target then
