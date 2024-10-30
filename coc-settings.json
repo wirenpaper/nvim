@@ -3,7 +3,8 @@
         "completeUnimported": true
     },
 	"colors.enable": true,
-	"pyright.disableDiagnostics": true,
+	"pyright.disableDiagnostics": false,
+    "python.analysis.typeCheckingMode": "off",
 	"coc.source.file.ignoreHidden": false,
 	"pyright.inlayHints.variableTypes": true,
 	"pyright.inlayHints.functionReturnTypes": true,
@@ -15,7 +16,6 @@
 	"zig.startUpMessage": true,
 	"zig.path": "/home/saifr/progs/zls/zig-out/bin/zls",
 	"zig.debugLog": false,
-	"suggest.autoTrigger": "none",
 	"signature.enable": false,
 	"languageserver": {
 		"ccls": {

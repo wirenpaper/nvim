@@ -1,6 +1,7 @@
 return require('packer').startup(function(use)
     -- Packer can manage itself
     use 'wbthomason/packer.nvim'
+    use 'jez/vim-better-sml'
     use 'flazz/vim-colorschemes'
     use {
         'phaazon/hop.nvim',
@@ -18,6 +19,7 @@ return require('packer').startup(function(use)
     use 'rockerBOO/boo-colorscheme-nvim'
     use 'tjdevries/colorbuddy.vim'
     use 'RishabhRD/nvim-rdark'
+    use 'nvim-tree/nvim-tree.lua'
     use 'marko-cerovac/material.nvim'
     use 'bluz71/vim-moonfly-colors'
     use 'catppuccin/nvim'
