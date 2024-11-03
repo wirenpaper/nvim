@@ -1,0 +1,5 @@
+/home/saifr/.config/nvim/plugin/hooks/hooks.lua
+/home/saifr/.config/nvim/plugin/hooks/hook_files.lua
+/home/saifr/scripts/neovim-autocd.py
+/home/saifr/scripts/tmux.py
+/home/saifr/.config/nvim/plugin/hooks
