@@ -48,9 +48,10 @@ augroup AutoChdir
 augroup END
 
 if has("autocmd")
-	au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
-				\| exe "normal! g`\"" | endif
+    au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
+                \| exe "normal! g`\"" | endif
 endif
+
 "set nu
 "set autoindent expandtab tabstop=4 shiftwidth=4
 "set softtabstop=0 noexpandtab

@@ -90,7 +90,11 @@ function M.hook_files(arg, flt)
                 prompt = "File name: "
             }, function(input)
                 if input then
+                    vim.cmd("redraw")
+                    local marker_path = hooks.path .. '/.hook_files/' .. M.MARKER
                     hookfiles_new(input)
+                    file_write(input, marker_path)
+                    hookfiles(input)
                 else
                     print("Action cancelled")
                 end
@@ -215,9 +219,13 @@ function M.hook_files(arg, flt)
                         end
                     elseif arg == "NEW" then
                         if entry and entry.value then
+                            vim.api.nvim_command('w ' .. hooks.path .. "/hooks")
                             hookfiles_new(entry.value)
+                            hookfiles(file_content(hooks.path .. "/.hook_files/" .. M.MARKER)) 
                         else
+                            vim.api.nvim_command('w ' .. hooks.path .. "/hooks")
                             hookfiles_new(action_state.get_current_line())
+                            hookfiles(file_content(hooks.path .. "/.hook_files/" .. M.MARKER)) 
                         end
                     end
                 end)
@@ -279,19 +287,30 @@ function hookfiles_cp(fname, flt)
     M.hook_files("COPY " .. source_path:match("([^/]+)$"), flt)
 end
 
+-- Reload
 vim.api.nvim_create_user_command('Wr', function() 
     vim.api.nvim_command('w ' .. hooks.path .. "/hooks")
     hookfiles(file_content(hooks.path .. "/.hook_files/" .. M.MARKER)) 
 end, {})
 
 vim.api.nvim_create_user_command('Wx', function()
+    vim.api.nvim_command('w ' .. hooks.path .. "/hooks")
     local fname = file_content(hooks.path .. "/.hook_files/" .. M.MARKER)
     local path = hooks.path .. "/.hook_files/" .. fname
     file_copy(hooks.path .. "/hooks", path)
 end, {})
 
 vim.api.nvim_create_user_command('Wn', function()
-    flt = file_content(hooks.path .. "/.hook_files/" .. M.MARKER)
+    if vim.fn.isdirectory(hooks.path .. "/.hook_files") == 0 then
+        vim.fn.mkdir(hooks.path .. "/.hook_files", "p")
+    end
+
+    local f_file = hooks.path .. "/.hook_files/__f__"
+    if vim.fn.filereadable(f_file) == 0 then
+        vim.fn.writefile({}, f_file)
+    end
+
+    --flt = file_content(hooks.path .. "/.hook_files/" .. M.MARKER)
     M.hook_files("NEW", flt)
 end, {})
 
@@ -437,6 +456,110 @@ function hookfiles_del(fname)
         end
     end)
 end
+
+local uv = vim.loop
+
+local function list_files(dir)
+    local files = {}
+    local handle = uv.fs_scandir(dir)
+    if handle then
+        while true do
+            local name, type = uv.fs_scandir_next(handle)
+            if not name then break end
+            if type == 'file' and name ~= '__f__' then
+                table.insert(files, name)
+            end
+        end
+    end
+    return files
+end
+
+-- Split content into lines
+local function split_lines(str)
+    local lines = {}
+    for line in str:gmatch("[^\r\n]+") do
+        table.insert(lines, line)
+    end
+    return lines
+end
+
+-- Check if line exists in file
+local function line_exists_in_file(filepath, line_to_check)
+    local file = io.open(filepath, "r")
+    if not file then return false end
+    
+    for file_line in file:lines() do
+        if file_line == line_to_check then
+            file:close()
+            return true
+        end
+    end
+    file:close()
+    return false
+end
+
+vim.api.nvim_create_user_command('Seed', function()
+    local files = list_files(hooks.path .. "/.hook_files")
+    local content = file_content(hooks.path .. "/hooks")
+    local content_lines = split_lines(content)
+    
+    for _, file in ipairs(files) do
+        local filepath = hooks.path .. "/.hook_files/" .. file
+        local lines_to_append = {}
+        
+        -- Check each line from source file
+        for _, line in ipairs(content_lines) do
+            -- If line doesn't exist anywhere in target file, add it to append list
+            if not line_exists_in_file(filepath, line) then
+                table.insert(lines_to_append, line)
+            end
+        end
+        
+        -- If we have any new lines to append
+        if #lines_to_append > 0 then
+            local file_handle = io.open(filepath, "a")
+            if file_handle then
+                file_handle:write("\n" .. table.concat(lines_to_append, "\n"))
+                file_handle:close()
+            end
+        end
+    end
+end, {})
+
+vim.api.nvim_create_user_command('Weed', function()
+    local files = list_files(hooks.path .. "/.hook_files")
+    local content = file_content(hooks.path .. "/hooks")
+    local lines_to_remove = split_lines(content)
+    
+    for _, file in ipairs(files) do
+        local filepath = hooks.path .. "/.hook_files/" .. file
+        local file_handle = io.open(filepath, "r")
+        if file_handle then
+            local file_lines = {}
+            -- Read all lines, keeping only non-matching ones
+            for line in file_handle:lines() do
+                local should_keep = true
+                for _, remove_line in ipairs(lines_to_remove) do
+                    if line == remove_line then
+                        should_keep = false
+                        break
+                    end
+                end
+                if should_keep then
+                    table.insert(file_lines, line)
+                end
+            end
+            file_handle:close()
+            
+            -- Write back the filtered content
+            file_handle = io.open(filepath, "w")
+            if file_handle then
+                file_handle:write(table.concat(file_lines, "\n"))
+                file_handle:close()
+            end
+        end
+    end
+end, {})
 
 M.file_content = file_content
 
