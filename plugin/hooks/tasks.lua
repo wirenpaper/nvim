@@ -4,54 +4,113 @@ local Queue = require'queue'
 
 local M = {}
 
---local item = Queue.dequeue(queue)
---item = Queue.dequeue(queue)
+-- Helper function to create a simple promise-like object
+local function create_promise()
+    local handlers = {}
+    return {
+        resolve = function(value)
+            if handlers.resolve then handlers.resolve(value) end
+        end,
+        reject = function(err)
+            if handlers.reject then handlers.reject(err) end
+        end,
+        then_do = function(resolve_handler, reject_handler)
+            handlers.resolve = resolve_handler
+            handlers.reject = reject_handler
+        end
+    }
+end
+local Localhost = {}
+Localhost.__index = Localhost
 
-function run_tasks()
-    local queue = Queue.new()
-    Queue.enqueue(queue, "ng serve")
-    Queue.enqueue(queue, "ng serve --port 4209")
+function Localhost:new(instruction, port)
+    local instance = setmetatable({}, Localhost)
+    instance.job_id = -1
+    instance.is_active = false
+    instance.instruction = instruction
+    instance.port = port
+    return instance
+end
 
-    local command = Queue.dequeue(queue)
-    ng_serve(command)
-    print("haahaa")
+function pop_cmds()
+    local cmds = { 
+        {Localhost:new("ng serve", 4200)},
+        {Localhost:new("ng serve --port 4209", 4209), 1}
+    }
+    for _, el in ipairs(cmds) do
+        if el[2] then
+            el[2] = cmds[el[2]]
+        end
+    end
+    run_tasks(cmds)
+end
+
+vim.api.nvim_create_user_command('PopCmds', pop_cmds, {})
+
+function run_tasks(cmds)
+    vim.schedule(function()
+        for _, cmd in ipairs(cmds) do
+            if not cmd[2] then  -- No dependency
+                run_localhost(cmd[1])
+            else
+                -- Start a single async watcher for this command
+                local function watch_dependency()
+                    local job_id = vim.fn.jobstart({'sleep', '0.5'}, {
+                        on_exit = function()
+                            if cmd[2][1].is_active then
+                                run_localhost(cmd[1])
+                            else
+                                watch_dependency()  -- Check again in 500ms
+                            end
+                        end
+                    })
+                end
+                watch_dependency()
+            end
+        end
+    end)
 end
 
 local task_path = hooks.path .. '/.hook_files/tasks/'
-function ng_serve(command)
+
+function run_localhost(cmd)
+    if cmd.job_id > 0 then
+        return  -- Prevent multiple starts
+    end
+    
     vim.cmd("redraw")
-    -- Determine the working directory based on the task_path
     local working_dir = vim.fn.fnamemodify(task_path, ":h:h")
-    local job_id = vim.fn.jobstart(command, {
+    
+    local job_id = vim.fn.jobstart(cmd.instruction, {
         cwd = working_dir,
         detach = true,
         stdout_buffered = true,
         stderr_buffered = true,
     })
-
+    
     if job_id > 0 then
-        print('Local server started with job ID:', job_id)
-
-        -- Actually check if port 4200 is accepting connections
-        local start_time = vim.loop.now()
-        local function check_port()
-            local check_command = "nc -z localhost 4200"
-
-            local port_check = vim.fn.system(check_command)
-            local is_ready = vim.v.shell_error == 0
-
-            if is_ready then
-                print("Server is ready on port 4200!")
-                return
-            elseif (vim.loop.now() - start_time) > 20000 then  -- 20 seconds timeout
-                print("Server failed to start after 20 seconds")
-                return
-            else
-                vim.defer_fn(check_port, 1000)  -- Check again in 1 second
-            end
+        cmd.job_id = job_id
+        print('Initiating server on port:', cmd.port)
+        
+        -- Start a single async watcher for the port
+        local function watch_port()
+            local port_check_job = vim.fn.jobstart({'nc', '-z', 'localhost', tostring(cmd.port)}, {
+                on_exit = function(_, exit_code)
+                    if exit_code == 0 then
+                        cmd.is_active = true
+                        print("port " .. cmd.port .. " is running")
+                    else
+                        vim.fn.jobstart({'sleep', '0.5'}, {
+                            on_exit = function()
+                                watch_port()  -- Check again in 500ms
+                            end
+                        })
+                    end
+                end
+            })
         end
-
-        check_port()  -- Start checking
+        
+        watch_port()
     else
         vim.cmd("redraw")
         print('Failed to start local server')
