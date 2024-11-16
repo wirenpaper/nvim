@@ -1,6 +1,0 @@
-[submodule "after/plugin"]
-	path = after/plugin
-	url = https://github.com/wirenpaper/nvim-plugin
-[submodule "plugin/hooks"]
-	path = plugin/hooks
-	url = https://github.com/wirenpaper/nvim-hooks

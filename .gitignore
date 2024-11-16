@@ -1,2 +1,10 @@
-.hooks
-.hook_files
+tags
+test.sh
+.luarc.json
+nvim
+
+spell/
+lazy-lock.json
+
+.gitignore.bak
+.git.bak
