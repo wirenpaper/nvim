@@ -8,3 +8,4 @@ lazy-lock.json
 
 .gitignore.bak
 .git.bak
+.hook_files
