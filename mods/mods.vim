@@ -9,3 +9,4 @@ source /home/saifr/.config/nvim/mods/hop.vim
 "source /home/saifr/.config/nvim/mods/dap/ui.vim
 "source /home/saifr/.config/nvim/mods/dap/virtual-text.vim
 source /home/saifr/.config/nvim/mods/bookmark.vim
+source /home/saifr/.config/nvim/mods/nerdcommenter.vim
